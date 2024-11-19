@@ -38,4 +38,3 @@ func OpenCollection(client *mongo.Client, collectionName string) *mongo.Collecti
 	var collection *mongo.Collection = client.Database("restaurant").Collection(collectionName)
 	return collection 
 }
-
