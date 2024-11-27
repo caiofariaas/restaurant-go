@@ -2,33 +2,42 @@ package main
 
 import (
 	"os"
-	"github.com/gin-gonic/gin"
+
 	"golang-restaurant-management/database"
-	"golang-restaurant-management/routes"
-	"golang-restaurant-management/middleware"
+
+	middleware "golang-restaurant-management/middleware"
+	routes "golang-restaurant-management/routes"
+
+	"github.com/gin-gonic/gin"
+
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 var foodCollection *mongo.Collection = database.OpenCollection(database.Client, "food")
 
-func main(){
-	port := os.Getenv("PORT")
+func main() {
+    port := os.Getenv("PORT")
 
-	if port == ""{
-		port = "8000"
-	}
+    if port == "" {
+        port = "8000"
+    }
 
-	router := gin.New()
-	router.Use(gin.Logger())
-	routes.UserRoutes(router)	
-	router.Use(middleware.Authentication())
+    router := gin.New()
+    router.Use(gin.Logger())
 
-	routes.FoodRoutes(router)
-	routes.MenuRoutes(router)
-	routes.TableRoutes(router)
-	routes.OrderRoutes(router)
-	routes.OrderItemRoutes(router)
-	routes.InvoiceRoutes(router)
+    // Rotas públicas (sem autenticação)
+    routes.UserRoutes(router) // Inclui SignUp e Login
 
-	router.Run(":" + port)
+    // Grupo de rotas protegidas
+    protectedRoutes := router.Group("/")
+    protectedRoutes.Use(middleware.Authentication())
+
+    routes.FoodRoutes(protectedRoutes)
+    routes.MenuRoutes(protectedRoutes)
+    routes.TableRoutes(protectedRoutes)
+    routes.OrderRoutes(protectedRoutes)
+    routes.OrderItemRoutes(protectedRoutes)
+    routes.InvoiceRoutes(protectedRoutes)
+
+    router.Run(":" + port)
 }
